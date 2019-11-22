@@ -56,6 +56,10 @@ public abstract class HttpBuilderBase<T extends HttpBuilderBase> {
     private int maxConnectionsTotal = DEFAULT_MAX_CONNECTIONS;
     private int maxConnectionsPerRoute = DEFAULT_MAX_CONNECTIONS;
     private int connectionPoolTimeToLive = CONNECTION_POOL_TIME_TO_LIVE;
+    // we allow to disable host name verification against CA certificate,
+    // notice: in general this is insecure and should be avoided in production,
+    // (this type of configuration is useful for development purposes)
+    private boolean noHostVerification = false;
 
     HttpBuilderBase() {
         credsProvider = new BasicCredentialsProvider();
@@ -154,6 +158,16 @@ public abstract class HttpBuilderBase<T extends HttpBuilderBase> {
      */
     public T sslContextBuilder(SSLContextBuilder sslContextBuilder) {
         this.sslContextBuilder = sslContextBuilder;
+        return self();
+    }
+
+    /**
+     * we allow to disable host name verification against CA certificate,
+     * notice: in general this is insecure and should be avoided in production,
+     * (this type of configuration is useful for development purposes)
+     */
+    public T noHostnameVerification(boolean noHostVerification) {
+        this.noHostVerification = noHostVerification;
         return self();
     }
 
@@ -283,10 +297,7 @@ public abstract class HttpBuilderBase<T extends HttpBuilderBase> {
         // prepare SSLContext
         SSLContext sslContext = buildSslContext();
         ConnectionSocketFactory plainsf = PlainConnectionSocketFactory.getSocketFactory();
-        // we allow to disable host name verification against CA certificate,
-        // notice: in general this is insecure and should be avoided in production,
-        // (this type of configuration is useful for development purposes)
-        boolean noHostVerification = false;
+
         LayeredConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
                 sslContext,
                 noHostVerification ? NoopHostnameVerifier.INSTANCE : new DefaultHostnameVerifier()

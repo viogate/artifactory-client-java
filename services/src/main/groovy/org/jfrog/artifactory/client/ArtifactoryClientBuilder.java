@@ -34,6 +34,10 @@ public class ArtifactoryClientBuilder {
     private String userAgent;
     private boolean ignoreSSLIssues;
     private SSLContextBuilder sslContextBuilder;
+    // we allow to disable host name verification against CA certificate,
+    // notice: in general this is insecure and should be avoided in production,
+    // (this type of configuration is useful for development purposes)
+    private boolean noHostnameVerification = false;
     private String accessToken;
     private List<HttpRequestInterceptor> requestInterceptorList = new ArrayList<>();
 
@@ -93,6 +97,16 @@ public class ArtifactoryClientBuilder {
         return this;
     }
 
+    /**
+     * we allow to disable host name verification against CA certificate,
+     * notice: in general this is insecure and should be avoided in production,
+     * (this type of configuration is useful for development purposes)
+     */
+    public ArtifactoryClientBuilder setNoHostnameVerification(boolean noHostnameVerification) {
+        this.noHostnameVerification = noHostnameVerification;
+        return this;
+    }
+
     public ArtifactoryClientBuilder setAccessToken(String accessToken) {
         this.accessToken = accessToken;
         return this;
@@ -114,7 +128,7 @@ public class ArtifactoryClientBuilder {
     private CloseableHttpClient createClientBuilder(URI uri) {
         ArtifactoryHttpClient artifactoryHttpClient = new ArtifactoryHttpClient();
         artifactoryHttpClient.hostFromUrl(uri.toString());
-
+        artifactoryHttpClient.noHostnameVerification(noHostnameVerification);
 
         if (StringUtils.isEmpty(accessToken)) {
             artifactoryHttpClient.authentication(username, password);
